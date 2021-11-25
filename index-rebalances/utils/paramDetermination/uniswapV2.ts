@@ -1,6 +1,10 @@
 import { BigNumber } from "ethers";
 import { BaseProvider } from "@ethersproject/providers";
-import { ether, preciseDiv, preciseMul } from "@setprotocol/index-coop-contracts/dist/utils/common";
+import {
+  ether,
+  preciseDiv,
+  preciseMul,
+} from "@setprotocol/index-coop-contracts/dist/utils/common";
 
 import {
   ChainId,
@@ -16,43 +20,63 @@ import { ZERO } from "../../../utils/constants";
 
 import DEPENDENCY from "../../dependencies";
 
-const TEN_BPS_IN_PERCENT = ether(.1);
-const THIRTY_BPS_IN_PERCENT = ether(.3);
+const TEN_BPS_IN_PERCENT = ether(0.1);
+const THIRTY_BPS_IN_PERCENT = ether(0.3);
 
-const {
-  ETH_ADDRESS,
-  BTC_ADDRESS,
-  USDC_ADDRESS,
-} = DEPENDENCY;
+const { ETH_ADDRESS, BTC_ADDRESS, USDC_ADDRESS } = DEPENDENCY;
 
+// @chainId will be ignored for now (as polygon is not supported)
 export async function getUniswapV2Quote(
   provider: BaseProvider,
   tokenAddress: Address,
-  targetPriceImpact: BigNumber): Promise<ExchangeQuote> {
-  const token: Token = await Fetcher.fetchTokenData(ChainId.MAINNET, tokenAddress, provider);
-  const weth: Token = await Fetcher.fetchTokenData(ChainId.MAINNET, ETH_ADDRESS, provider);
-  const wbtc: Token = await Fetcher.fetchTokenData(ChainId.MAINNET, BTC_ADDRESS, provider);
-  const usdc: Token = await Fetcher.fetchTokenData(ChainId.MAINNET, USDC_ADDRESS, provider);
+  targetPriceImpact: BigNumber,
+  chainId: number = ChainId.MAINNET
+): Promise<ExchangeQuote> {
+  const token: Token = await Fetcher.fetchTokenData(
+    ChainId.MAINNET,
+    tokenAddress,
+    provider
+  );
+  const weth: Token = await Fetcher.fetchTokenData(
+    ChainId.MAINNET,
+    ETH_ADDRESS,
+    provider
+  );
+  const wbtc: Token = await Fetcher.fetchTokenData(
+    ChainId.MAINNET,
+    BTC_ADDRESS,
+    provider
+  );
+  const usdc: Token = await Fetcher.fetchTokenData(
+    ChainId.MAINNET,
+    USDC_ADDRESS,
+    provider
+  );
 
   const trades = Trade.bestTradeExactIn(
     await getUniswapV2Pairs(provider, [token, weth, wbtc, usdc]),
     new TokenAmount(weth, ether(1).toString()),
     token,
-    {maxNumResults: 3, maxHops: 2},
+    { maxNumResults: 3, maxHops: 2 }
   );
 
   if (trades.length != 0) {
     // Use linear approximation of price impact to find out how many 1 ETH trades add to 50 bps price impact (net of fees)
     const hops = trades[0].route.pairs.length;
     const priceImpactRatio = preciseDiv(
-      hops > 1 ? targetPriceImpact.sub(TEN_BPS_IN_PERCENT) : targetPriceImpact,   // Subtract 10 bps from targetPriceImpact if extra hop used
-      ether(parseFloat(trades[0].priceImpact.toSignificant(18))).sub(THIRTY_BPS_IN_PERCENT.mul(trades[0].route.pairs.length))
+      hops > 1 ? targetPriceImpact.sub(TEN_BPS_IN_PERCENT) : targetPriceImpact, // Subtract 10 bps from targetPriceImpact if extra hop used
+      ether(parseFloat(trades[0].priceImpact.toSignificant(18))).sub(
+        THIRTY_BPS_IN_PERCENT.mul(trades[0].route.pairs.length)
+      )
     );
     return {
       exchange: exchanges.UNISWAP,
       size: preciseMul(
-        ether(parseFloat(trades[0].outputAmount.toExact())).div(BigNumber.from(10).pow(18 - token.decimals)),
-        priceImpactRatio).toString(),
+        ether(parseFloat(trades[0].outputAmount.toExact())).div(
+          BigNumber.from(10).pow(18 - token.decimals)
+        ),
+        priceImpactRatio
+      ).toString(),
       data: hops > 1 ? trades[0].route.path[1].address : "0x",
     } as ExchangeQuote;
   }
@@ -64,7 +88,10 @@ export async function getUniswapV2Quote(
   } as ExchangeQuote;
 }
 
-async function getUniswapV2Pairs(provider: BaseProvider, tokens: Token[]): Promise<Pair[]> {
+async function getUniswapV2Pairs(
+  provider: BaseProvider,
+  tokens: Token[]
+): Promise<Pair[]> {
   const pairs: Pair[] = [];
   for (let i = 0; i < tokens.length - 1; i++) {
     for (let j = 1; j < tokens.length - i - 1; j++) {
