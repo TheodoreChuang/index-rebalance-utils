@@ -48,7 +48,7 @@
     "typechain": "npx hardhat typechain",
     "semantic-release": "semantic-release --branches main",
     "acp": "git add . && yarn run commit && git push",
-    "commit": "git-cz"
+    "commit": "npx git-cz"
   },
   "resolutions": {
     "ganache-cli": "6.12.2"
