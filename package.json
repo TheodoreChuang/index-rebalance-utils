@@ -1,6 +1,6 @@
 {
-  "name": "@setprotocol/index-rebalance-utils",
-  "version": "0.0.6",
+  "name": "@indexcoop/index-rebalance-utils",
+  "version": "0.0.0-development",
   "description": "Utilities for param and allocation determination for Set Protocol indices.",
   "main": "dist",
   "types": "dist/types",
@@ -45,18 +45,21 @@
     "test:fork": "FORK=true npx hardhat test",
     "transpile": "tsc",
     "transpile-dist": "tsc -p tsconfig.dist.json",
-    "typechain": "npx hardhat typechain"
+    "typechain": "npx hardhat typechain",
+    "semantic-release": "semantic-release --branches main",
+    "acp": "git add . && yarn run commit && git push",
+    "commit": "git-cz"
   },
   "resolutions": {
     "ganache-cli": "6.12.2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SetProtocol/index-coop-contracts.git"
+    "url": "https://github.com/IndexCoop/index-coop-contracts.git"
   },
   "author": "felix2feng",
   "license": "MIT",
-  "homepage": "https://github.com/SetProtocol",
+  "homepage": "https://github.com/IndexCoop",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -81,7 +84,8 @@
     "ts-node": "^8.10.1",
     "tslint": "^6.1.3",
     "tslint-eslint-rules": "^5.4.0",
-    "typescript": "^3.9.3"
+    "typescript": "^3.9.3",
+    "semantic-release": "^18.0.1"
   },
   "dependencies": {
     "@balancer-labs/sor": "^1.0.0",
